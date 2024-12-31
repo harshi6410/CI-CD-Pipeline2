@@ -10,7 +10,6 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout the code from the Git repository
                 checkout scm
             }
         }
@@ -18,7 +17,6 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Install dependencies using npm
                     bat 'npm install'
                 }
             }
@@ -27,7 +25,6 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Run tests using Mocha or Jest (ensure you have test scripts in package.json)
                     bat 'npm test'
                 }
             }
@@ -36,7 +33,6 @@ pipeline {
         stage('Build Application') {
             steps {
                 script {
-                    // Run any build process if needed (e.g., bundling assets)
                     bat 'npm run build'
                 }
             }
@@ -45,8 +41,7 @@ pipeline {
         stage('Dockerize Application') {
             steps {
                 script {
-                    // Build the Docker image using correct variable syntax
-                    bat "docker build -t ${DOCKER_IMAGE} ."
+                    bat 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
@@ -54,10 +49,16 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Push the Docker image to a registry (Docker Hub or AWS ECR)
-                    // Example: Docker Hub push
-                    bat "docker tag ${DOCKER_IMAGE} harshi6410/${DOCKER_IMAGE}"
-                    bat "docker push harshi6410/${DOCKER_IMAGE}"
+                    // Docker login to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    }
+
+                    // Tag the Docker image
+                    bat 'docker tag $DOCKER_IMAGE harshi6410/$DOCKER_IMAGE:latest'
+
+                    // Push the Docker image to Docker Hub
+                    bat 'docker push harshi6410/$DOCKER_IMAGE:latest'
                 }
             }
         }
@@ -65,8 +66,6 @@ pipeline {
         stage('Deploy to Production') {
             steps {
                 script {
-                    // Trigger the deployment to your cloud platform or server
-                    // Example using the deployScript.sh script in pipeline/deploy folder
                     bat './pipeline/deploy/deployScript.sh'
                 }
             }
