@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     // Install dependencies using npm
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     // Run tests using Mocha or Jest (ensure you have test scripts in package.json)
-                    sh 'npm test'
+                    bat 'npm test'
                 }
             }
         }
@@ -37,7 +37,7 @@ pipeline {
             steps {
                 script {
                     // Run any build process if needed (e.g., bundling assets)
-                    sh 'npm run build'
+                    bat 'npm run build'
                 }
             }
         }
@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    bat 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
@@ -56,8 +56,8 @@ pipeline {
                 script {
                     // Push the Docker image to a registry (Docker Hub or AWS ECR)
                     // Example: Docker Hub push
-                    sh 'docker tag $DOCKER_IMAGE harshi6410/$DOCKER_IMAGE'
-                    sh 'docker push harshi6410/$DOCKER_IMAGE'
+                    bat 'docker tag $DOCKER_IMAGE harshi6410/$DOCKER_IMAGE'
+                    bat 'docker push harshi6410/$DOCKER_IMAGE'
                 }
             }
         }
@@ -67,7 +67,7 @@ pipeline {
                 script {
                     // Trigger the deployment to your cloud platform or server
                     // Example using the deployScript.sh script in pipeline/deploy folder
-                    sh './pipeline/deploy/deployScript.sh'
+                    bat './pipeline/deploy/deployScript.sh'
                 }
             }
         }
