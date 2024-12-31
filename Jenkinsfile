@@ -5,7 +5,7 @@ pipeline {
         NODE_ENV = 'production'
         APP_NAME = 'ci-cd-app'
         DOCKER_IMAGE = 'ci-cd-app-image'
-        REGISTRY = 'your-docker-registry'  // Use your Docker registry URL
+        REGISTRY = 'icr.io/ci-cd-app'  // Replace with your namespace
     }
 
     stages {
@@ -47,21 +47,20 @@ pipeline {
         stage('Dockerize Application') {
             steps {
                 script {
-                    bat "docker build -t ${env.DOCKER_IMAGE} ."  // Build Docker image
+                    bat "docker build -t ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest ."  // Build Docker image
                 }
             }
         }
 
-        // Push Docker image to Docker registry
+        // Push Docker image to IBM Cloud Container Registry
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Docker login to Docker Hub or another registry
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
+                        bat "ibmcloud login --apikey ${IBM_CLOUD_APIKEY} -r us-south"
+                        bat "ibmcloud cr login"
                     }
-                    // Push the Docker image to Docker registry
-                    bat "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE}:latest"
+                    bat "docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest"
                 }
             }
         }
@@ -72,7 +71,7 @@ pipeline {
                 script {
                     withCredentials([kubeconfigFile(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
                         // Update the Kubernetes deployment with the new image
-                        bat "kubectl set image deployment/your-deployment-name your-container-name=${DOCKER_IMAGE}:latest"
+                        bat "kubectl set image deployment/your-deployment-name your-container-name=${env.REGISTRY}/${env.DOCKER_IMAGE}:latest"
                         bat "kubectl rollout status deployment/your-deployment-name"
                     }
                 }
