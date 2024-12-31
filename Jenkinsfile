@@ -25,7 +25,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    bat 'npm test'
+                    // Assuming tests are written in JavaScript and use a testing framework like Mocha or Jest
+                    // You may need to replace this command with the one suitable for your testing framework
+                    bat 'npm test'  // This runs your test script, which should be defined in package.json
                 }
             }
         }
@@ -47,14 +49,13 @@ pipeline {
         }
 
         stage('Deploy to Production') {
-    steps {
-        script {
-            // Use double quotes to escape the path with spaces
-            bat '"C:\\Program Files\\Git\\bin\\bash.exe" -c "./pipeline/deploy/deployScript.sh"'
+            steps {
+                script {
+                    // Using the correct bash path for Windows to run the deploy script
+                    bat '"C:\\Program Files\\Git\\bin\\bash.exe" -c "./pipeline/deploy/deployScript.sh"'
+                }
+            }
         }
-    }
-}
-
     }
 
     post {
