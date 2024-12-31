@@ -45,8 +45,8 @@ pipeline {
         stage('Dockerize Application') {
             steps {
                 script {
-                    // Build the Docker image
-                    bat 'docker build -t $DOCKER_IMAGE .'
+                    // Build the Docker image using correct variable syntax
+                    bat "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -56,8 +56,8 @@ pipeline {
                 script {
                     // Push the Docker image to a registry (Docker Hub or AWS ECR)
                     // Example: Docker Hub push
-                    bat 'docker tag $DOCKER_IMAGE harshi6410/$DOCKER_IMAGE'
-                    bat 'docker push harshi6410/$DOCKER_IMAGE'
+                    bat "docker tag ${DOCKER_IMAGE} harshi6410/${DOCKER_IMAGE}"
+                    bat "docker push harshi6410/${DOCKER_IMAGE}"
                 }
             }
         }
