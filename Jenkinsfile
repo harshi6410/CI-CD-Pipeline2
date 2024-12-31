@@ -39,12 +39,13 @@ pipeline {
         }
 
         stage('Dockerize Application') {
-            steps {
-                script {
-                    bat 'docker build -t $DOCKER_IMAGE .'
-                }
-            }
+    steps {
+        script {
+            // Correcting the way the environment variable is referenced
+            bat "docker build -t ${env.DOCKER_IMAGE} ."
         }
+    }
+}
 
         stage('Push Docker Image') {
             steps {
