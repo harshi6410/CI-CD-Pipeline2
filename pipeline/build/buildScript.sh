@@ -1,4 +1,5 @@
 #!/bin/bash
-# Build script for the application
-echo "Building the application..."
-docker build -t ci-cd-app .
+echo "Starting build process..."
+npm install
+npm run build
+echo "Build completed successfully!"

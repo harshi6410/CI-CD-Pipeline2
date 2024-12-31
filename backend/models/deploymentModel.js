@@ -1,9 +1,13 @@
-// Example model to manage deployment data
-class Deployment {
-    constructor(status, timestamp) {
-        this.status = status;
-        this.timestamp = timestamp;
-    }
-}
+// A model for handling deployment logs or status (optional for demonstration)
+const mongoose = require('mongoose');
 
-module.exports = Deployment;
+const deploymentSchema = new mongoose.Schema({
+    status: {
+        type: String,
+        enum: ['success', 'failed', 'pending'],
+        default: 'pending'
+    },
+    createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('Deployment', deploymentSchema);

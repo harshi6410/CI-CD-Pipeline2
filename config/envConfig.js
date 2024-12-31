@@ -1,7 +1,6 @@
-// Environment configuration
-require('dotenv').config();
-
+// Environment configuration file
 module.exports = {
-    port: process.env.PORT || 3000,
-    nodeEnv: process.env.NODE_ENV || 'development'
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    PORT: process.env.PORT || 3000,
+    DB_URL: process.env.DB_URL || 'mongodb://localhost:27017/cicdapp',
 };

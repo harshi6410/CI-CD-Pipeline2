@@ -1,7 +1,4 @@
-// Example database configuration (replace with your DB details)
+// Placeholder for DB connection settings (if needed for a different DB)
 module.exports = {
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'ci_cd_app'
+    url: 'mongodb://localhost:27017/cicdapp'
 };
