@@ -46,24 +46,7 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    // Docker login to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-    // Docker login using the credentials
-    bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
-}
-
-
-                    // Tag the Docker image
-                    bat "docker tag ${DOCKER_IMAGE} ${DOCKER_USERNAME}/${DOCKER_IMAGE}:latest"
-
-                    // Push the Docker image to Docker Hub
-                    bat "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE}:latest"
-                }
-            }
-        }
+        // Removed Push Docker Image Stage
 
         stage('Deploy to Production') {
             steps {
