@@ -5,6 +5,7 @@ pipeline {
         NODE_ENV = 'production'
         APP_NAME = 'ci-cd-app'
         DOCKER_IMAGE = 'ci-cd-app-image'
+        DOCKER_HUB_REPO = 'your-dockerhub-username/ci-cd-app-image' // Replace with your Docker Hub repo
     }
 
     stages {
@@ -44,6 +45,23 @@ pipeline {
             steps {
                 script {
                     bat "docker build -t ${env.DOCKER_IMAGE} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // Docker login to Docker Hub
+                        bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+
+                        // Tag the Docker image
+                        bat "docker tag ${env.DOCKER_IMAGE} ${env.DOCKER_HUB_REPO}:latest"
+
+                        // Push the Docker image to Docker Hub
+                        bat "docker push ${env.DOCKER_HUB_REPO}:latest"
+                    }
                 }
             }
         }
