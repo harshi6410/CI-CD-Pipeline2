@@ -5,7 +5,7 @@ pipeline {
         NODE_ENV = 'production'
         APP_NAME = 'ci-cd-app'
         DOCKER_IMAGE = 'ci-cd-app-image'
-        DOCKER_HUB_REPO = 'your-dockerhub-username/ci-cd-app-image' // Replace with your Docker Hub repo
+        DOCKER_HUB_REPO = 'harshi6410/ci-cd-app-image' // Replace with your Docker Hub repo
     }
 
     stages {
