@@ -4,7 +4,7 @@ pipeline {
     environment {
         NODE_ENV = 'production'
         APP_NAME = 'ci-cd-app'
-        DOCKER_IMAGE = 'ci-cd-app-image'
+        DOCKER_IMAGE = 'ci-cd-app-image'.toLowerCase()  // Ensure image name is lowercase
         REGISTRY = 'icr.io/ci-cd-app'  // Replace with your namespace
     }
 
@@ -54,18 +54,18 @@ pipeline {
 
         // Push Docker image to IBM Cloud Container Registry
         stage('Push Docker Image') {
-    steps {
-        script {
-            withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
-                bat '''
-                ibmcloud login --apikey %IBM_CLOUD_APIKEY% -r us-south
-                ibmcloud cr login
-                docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest
-                '''
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
+                        bat '''
+                        ibmcloud login --apikey %IBM_CLOUD_APIKEY% -r us-south
+                        ibmcloud cr login
+                        docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest
+                        '''
+                    }
+                }
             }
         }
-    }
-}
 
         // Deploy to Kubernetes
         stage('Deploy to Kubernetes') {
