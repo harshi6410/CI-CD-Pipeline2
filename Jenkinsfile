@@ -46,12 +46,13 @@ pipeline {
             }
         }
 
-        // Removed Push Docker Image Stage
-
         stage('Deploy to Production') {
             steps {
                 script {
-                    bat './pipeline/deploy/deployScript.sh'
+                    // If the script is a .sh file, use Git Bash or WSL to run it in Windows
+                    // Make sure you have Git Bash installed or use appropriate shell for Windows
+
+                    bat 'C:\\Program Files\\Git\\bin\\bash.exe -c "./pipeline/deploy/deployScript.sh"'
                 }
             }
         }
