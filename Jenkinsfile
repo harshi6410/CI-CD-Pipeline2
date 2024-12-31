@@ -5,72 +5,76 @@ pipeline {
         NODE_ENV = 'production'
         APP_NAME = 'ci-cd-app'
         DOCKER_IMAGE = 'ci-cd-app-image'
-        DOCKER_HUB_REPO = 'harshi6410/ci-cd-app-image' // Replace with your Docker Hub repo
+        REGISTRY = 'your-docker-registry'  // Use your Docker registry URL
     }
 
     stages {
+        // Checkout code from GitHub repository
         stage('Checkout Code') {
             steps {
                 checkout scm
             }
         }
 
+        // Install application dependencies
         stage('Install Dependencies') {
             steps {
                 script {
-                    bat 'npm install'
+                    bat 'npm install'  // Run npm install to install dependencies
                 }
             }
         }
 
+        // Run tests
         stage('Run Tests') {
             steps {
                 script {
-                    // Assuming tests are written in JavaScript and use a testing framework like Mocha or Jest
-                    // You may need to replace this command with the one suitable for your testing framework
-                    bat 'npm test'  // This runs your test script, which should be defined in package.json
+                    bat 'npm test'  // Run tests using npm
                 }
             }
         }
 
+        // Build the application
         stage('Build Application') {
             steps {
                 script {
-                    bat 'npm run build'
+                    bat 'npm run build'  // Run build command (e.g., npm run build)
                 }
             }
         }
 
+        // Build Docker Image
         stage('Dockerize Application') {
             steps {
                 script {
-                    bat "docker build -t ${env.DOCKER_IMAGE} ."
+                    bat "docker build -t ${env.DOCKER_IMAGE} ."  // Build Docker image
                 }
             }
         }
 
-        stage('Push Docker Image to Docker Hub') {
+        // Push Docker image to Docker registry
+        stage('Push Docker Image') {
             steps {
                 script {
+                    // Docker login to Docker Hub or another registry
                     withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        // Docker login to Docker Hub
                         bat "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
-
-                        // Tag the Docker image
-                        bat "docker tag ${env.DOCKER_IMAGE} ${env.DOCKER_HUB_REPO}:latest"
-
-                        // Push the Docker image to Docker Hub
-                        bat "docker push ${env.DOCKER_HUB_REPO}:latest"
                     }
+                    // Push the Docker image to Docker registry
+                    bat "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE}:latest"
                 }
             }
         }
 
-        stage('Deploy to Production') {
+        // Deploy to Kubernetes
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Using the correct bash path for Windows to run the deploy script
-                    bat '"C:\\Program Files\\Git\\bin\\bash.exe" -c "./pipeline/deploy/deployScript.sh"'
+                    withCredentials([kubeconfigFile(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
+                        // Update the Kubernetes deployment with the new image
+                        bat "kubectl set image deployment/your-deployment-name your-container-name=${DOCKER_IMAGE}:latest"
+                        bat "kubectl rollout status deployment/your-deployment-name"
+                    }
                 }
             }
         }
