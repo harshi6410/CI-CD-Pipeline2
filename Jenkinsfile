@@ -54,16 +54,18 @@ pipeline {
 
         // Push Docker image to IBM Cloud Container Registry
         stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
-                        bat "ibmcloud login --apikey ${IBM_CLOUD_APIKEY} -r us-south"
-                        bat "ibmcloud cr login"
-                    }
-                    bat "docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest"
-                }
+    steps {
+        script {
+            withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
+                bat '''
+                ibmcloud login --apikey %IBM_CLOUD_APIKEY% -r us-south
+                ibmcloud cr login
+                docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest
+                '''
             }
         }
+    }
+}
 
         // Deploy to Kubernetes
         stage('Deploy to Kubernetes') {
