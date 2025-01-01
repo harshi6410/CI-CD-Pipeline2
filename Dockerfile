@@ -1,20 +1,20 @@
-# Use the official Node.js image
+# Use Node.js as the base image
 FROM node:14
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json for efficient caching
+# Copy the package.json and package-lock.json (if available) into the container
 COPY package*.json ./
 
-# Install dependencies using npm ci (faster and more reliable for CI/CD)
+# Install the dependencies using npm ci (faster and more reliable for CI/CD)
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy the rest of the application code into the container
 COPY . .
 
-# Expose the port the app runs on
+# Expose the port the app will run on
 EXPOSE 3000
 
-# Start the application
-CMD ["node", "backend/server.js"]
+# Command to start the application
+CMD ["npm", "start"]
