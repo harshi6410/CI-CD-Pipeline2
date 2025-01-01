@@ -9,6 +9,21 @@ pipeline {
         IBM_CLOUD_CLI = "ibmcloud"        // IBM Cloud CLI
     }
     stages {
+        stage('Install IBM Cloud Container Registry Plugin') {
+            steps {
+                script {
+                    echo 'Checking if IBM Cloud Container Registry plugin is installed...'
+                    def pluginList = bat(script: "ibmcloud plugin list", returnStdout: true).trim()
+                    if (!pluginList.contains('container-registry')) {
+                        echo 'IBM Cloud Container Registry plugin not found. Installing plugin...'
+                        bat 'ibmcloud plugin install container-registry -f'
+                    } else {
+                        echo 'IBM Cloud Container Registry plugin is already installed.'
+                    }
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 script {
