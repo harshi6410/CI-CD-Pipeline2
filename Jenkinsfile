@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         REGISTRY_URL = "us.icr.io"           // IBM Cloud Registry URL
-        NAMESPACE = "my_namespace"           // Replace with your IBM Cloud namespace
+        NAMESPACE = "ci-cd-app"           // Replace with your IBM Cloud namespace
         IMAGE_NAME = "myapp"                 // Replace with your Docker image name
         TAG = "latest"                       // Replace with your desired tag (e.g., version)
     }
