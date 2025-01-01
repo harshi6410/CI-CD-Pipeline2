@@ -1,92 +1,47 @@
 pipeline {
     agent any
-
     environment {
-        NODE_ENV = 'production'
-        APP_NAME = 'ci-cd-app'
-        DOCKER_IMAGE = 'ci-cd-app-image'.toLowerCase()  // Ensure image name is lowercase
-        REGISTRY = 'icr.io/ci-cd-app'  // Replace with your namespace
+        REGISTRY_URL = "us.icr.io"
+        NAMESPACE = "my_namespace"      // Replace with your IBM Cloud namespace
+        IMAGE_NAME = "myapp"            // Replace with your Docker image name
+        TAG = "latest"                  // Replace with your desired tag (e.g., version)
     }
-
     stages {
-        // Checkout code from GitHub repository
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                // Checkout the latest code from GitHub repository
+                git 'https://github.com/your-repo/your-project.git'
             }
         }
-
-        // Install application dependencies
-        stage('Install Dependencies') {
+        
+        stage('Build Docker Image') {
             steps {
                 script {
-                    bat 'npm install'  // Run npm install to install dependencies
+                    // Build the Docker image
+                    sh 'docker build -t ${IMAGE_NAME}:${TAG} .'
                 }
             }
         }
 
-        // Run tests
-        stage('Run Tests') {
+        stage('Tag Docker Image') {
             steps {
                 script {
-                    bat 'npm test'  // Run tests using npm
+                    // Tag the Docker image for IBM Cloud Container Registry
+                    sh 'docker tag ${IMAGE_NAME}:${TAG} ${REGISTRY_URL}/${NAMESPACE}/${IMAGE_NAME}:${TAG}'
                 }
             }
         }
 
-        // Build the application
-        stage('Build Application') {
+        stage('Push to IBM Cloud Container Registry') {
             steps {
                 script {
-                    bat 'npm run build'  // Run build command (e.g., npm run build)
+                    // Log in to IBM Cloud Container Registry
+                    sh 'ibmcloud cr login'
+                    
+                    // Push the Docker image to IBM Cloud Container Registry
+                    sh 'docker push ${REGISTRY_URL}/${NAMESPACE}/${IMAGE_NAME}:${TAG}'
                 }
             }
-        }
-
-        // Build Docker Image
-        stage('Dockerize Application') {
-            steps {
-                script {
-                    bat "docker build -t ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest ."  // Build Docker image
-                }
-            }
-        }
-
-        // Push Docker image to IBM Cloud Container Registry
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'ibmcloud_apikey', variable: 'IBM_CLOUD_APIKEY')]) {
-                        bat '''
-                        ibmcloud login --apikey %IBM_CLOUD_APIKEY% -r us-south
-                        ibmcloud cr login
-                        docker push ${env.REGISTRY}/${env.DOCKER_IMAGE}:latest
-                        '''
-                    }
-                }
-            }
-        }
-
-        // Deploy to Kubernetes
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    withCredentials([kubeconfigFile(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
-                        // Update the Kubernetes deployment with the new image
-                        bat "kubectl set image deployment/your-deployment-name your-container-name=${env.REGISTRY}/${env.DOCKER_IMAGE}:latest"
-                        bat "kubectl rollout status deployment/your-deployment-name"
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-        failure {
-            echo 'Pipeline execution failed.'
         }
     }
 }
