@@ -96,21 +96,22 @@ pipeline {
             }
         }
 
-        // Optional IBM Cloud Deployment
+        // IBM Cloud Deployment (Now using k8s/deployment.yaml)
         stage('Deploy to IBM Cloud') {
-            when {
-                // Run this stage only if the file exists
-                fileExists 'k8s/ibmcloud-deployment.yaml'
-            }
             steps {
                 script {
-                    echo 'Deploying to IBM Cloud...'
+                    // Check if the file exists in the workspace before attempting deployment
+                    if (fileExists('k8s/deployment.yaml')) {
+                        echo 'Deploying to IBM Cloud...'
 
-                    // Assuming you have a deployment.yaml for IBM Cloud as well
-                    bat '''
-                        kubectl apply -f k8s/ibmcloud-deployment.yaml
-                    '''
-                    echo 'Deployment to IBM Cloud complete!'
+                        // Assuming you have the same deployment.yaml for IBM Cloud as well
+                        bat '''
+                            kubectl apply -f k8s/deployment.yaml
+                        '''
+                        echo 'Deployment to IBM Cloud complete!'
+                    } else {
+                        echo 'Deployment file not found. Skipping deployment to IBM Cloud.'
+                    }
                 }
             }
         }
