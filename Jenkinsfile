@@ -43,21 +43,12 @@ pipeline {
             steps {
                 bat '''
                     echo Building Docker image...
-                    docker build -t %IMAGE_NAME%:%TAG% .
+                    docker build -t %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG% .
                 '''
             }
         }
 
-        stage('Tag Docker Image') {
-            steps {
-                bat '''
-                    echo Tagging Docker image for IBM Cloud Container Registry...
-                    docker tag %IMAGE_NAME%:%TAG% %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG%
-                '''
-            }
-        }
-
-        stage('Push to IBM Cloud Container Registry') {
+        stage('Push Docker Image to IBM Cloud Registry') {
             steps {
                 script {
                     // Ensure IBM Cloud CLI is authenticated using credentials stored in Jenkins
@@ -83,10 +74,14 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
-                    // Apply the Kubernetes Deployment using kubectl
                     echo 'Deploying to Minikube...'
 
-                    // Reference the Kubernetes manifest located in the k8s folder
+                    // Set the Kubernetes context for Minikube
+                    bat '''
+                        kubectl config use-context minikube
+                    '''
+
+                    // Apply the Kubernetes Deployment using kubectl
                     bat """
                         kubectl apply -f k8s/deployment.yaml
                     """
@@ -101,8 +96,12 @@ pipeline {
             }
         }
 
-        // IBM Cloud Deployment (Optional)
+        // Optional IBM Cloud Deployment
         stage('Deploy to IBM Cloud') {
+            when {
+                // Run this stage only if the file exists
+                fileExists 'k8s/ibmcloud-deployment.yaml'
+            }
             steps {
                 script {
                     echo 'Deploying to IBM Cloud...'
