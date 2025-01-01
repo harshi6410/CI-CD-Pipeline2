@@ -2,16 +2,66 @@ pipeline {
     agent any
 
     environment {
+        // General environment variables
+        NODE_ENV = 'production'
+        APP_NAME = 'ci-cd-app'
+        DOCKER_IMAGE = 'ci-cd-app-image'.toLowerCase()  // Ensure image name is lowercase
+        REGISTRY = 'icr.io/ci-cd-app'  // Replace with your namespace
         REGISTRY_URL = "us.icr.io"          // IBM Cloud Registry URL
         NAMESPACE = "ci-cd-app"             // Replace with your IBM Cloud namespace
-        IMAGE_NAME = "myapp"                // Replace with your Docker image name
-        TAG = "latest"                      // Replace with your desired tag (e.g., version)
+        IMAGE_NAME = "ci-cd-app-image"      // Docker image name
+        TAG = "latest"                      // Desired Docker image tag
         DOCKER_CLI = "docker"               // Docker CLI
         IBM_CLOUD_CLI = "ibmcloud"         // IBM Cloud CLI
         KUBECONFIG = 'C:\\Users\\chira\\.kube\\config'  // Path to the kubeconfig file for Minikube
     }
 
     stages {
+        // Checkout code from GitHub repository
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        // Install dependencies (e.g., npm install)
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    bat 'npm install'  // Run npm install to install dependencies
+                }
+            }
+        }
+
+        // Run tests (e.g., npm test)
+        stage('Run Tests') {
+            steps {
+                script {
+                    bat 'npm test'  // Run tests using npm
+                }
+            }
+        }
+
+        // Build the application (e.g., npm run build)
+        stage('Build Application') {
+            steps {
+                script {
+                    bat 'npm run build'  // Run build command (e.g., npm run build)
+                }
+            }
+        }
+
+        // Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                bat '''
+                    echo Building Docker image...
+                    docker build -t %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG% .
+                '''
+            }
+        }
+
+        // Install IBM Cloud Container Registry plugin if not already installed
         stage('Install IBM Cloud Container Registry Plugin') {
             steps {
                 script {
@@ -27,31 +77,10 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
-            steps {
-                script {
-                    // Clean workspace to ensure no leftover state
-                    deleteDir()
-                    echo 'Checking out the code from GitHub repository...'
-                    // Use the correct credentials ID to authenticate with GitHub
-                    git credentialsId: 'github-token', url: 'https://github.com/harshi6410/CI-CD-Pipeline2.git', branch: 'main'
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                bat '''
-                    echo Building Docker image...
-                    docker build -t %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG% .
-                '''
-            }
-        }
-
+        // Push Docker image to IBM Cloud Container Registry
         stage('Push Docker Image to IBM Cloud Registry') {
             steps {
                 script {
-                    // Ensure IBM Cloud CLI is authenticated using credentials stored in Jenkins
                     withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBM_API_KEY')]) {
                         echo 'Logging into IBM Cloud...'
                         
@@ -71,6 +100,7 @@ pipeline {
             }
         }
 
+        // Deploy to Minikube
         stage('Deploy to Minikube') {
             steps {
                 script {
@@ -96,7 +126,7 @@ pipeline {
             }
         }
 
-        // IBM Cloud Deployment (Now using k8s/deployment.yaml)
+        // Deploy to IBM Cloud Kubernetes (if deployment.yaml exists)
         stage('Deploy to IBM Cloud') {
             steps {
                 script {
@@ -104,7 +134,7 @@ pipeline {
                     if (fileExists('k8s/deployment.yaml')) {
                         echo 'Deploying to IBM Cloud...'
 
-                        // Assuming you have the same deployment.yaml for IBM Cloud as well
+                        // Apply the Kubernetes Deployment using kubectl
                         bat '''
                             kubectl apply -f k8s/deployment.yaml
                         '''
