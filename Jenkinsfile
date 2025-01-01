@@ -1,14 +1,15 @@
 pipeline {
     agent any
+
     environment {
-        REGISTRY_URL = "us.icr.io"         // IBM Cloud Registry URL
-        NAMESPACE = "ci-cd-app"            // Replace with your IBM Cloud namespace
-        IMAGE_NAME = "myapp"               // Replace with your Docker image name
-        TAG = "latest"                     // Replace with your desired tag (e.g., version)
-        DOCKER_CLI = "docker"              // Docker CLI
-        IBM_CLOUD_CLI = "ibmcloud"        // IBM Cloud CLI
-        MINIKUBE_HOME = "/c/Minikube"      // Path to Minikube installation (example path for Windows)
+        REGISTRY_URL = "us.icr.io"          // IBM Cloud Registry URL
+        NAMESPACE = "ci-cd-app"             // Replace with your IBM Cloud namespace
+        IMAGE_NAME = "myapp"                // Replace with your Docker image name
+        TAG = "latest"                      // Replace with your desired tag (e.g., version)
+        DOCKER_CLI = "docker"               // Docker CLI
+        IBM_CLOUD_CLI = "ibmcloud"         // IBM Cloud CLI
     }
+
     stages {
         stage('Install IBM Cloud Container Registry Plugin') {
             steps {
@@ -78,31 +79,15 @@ pipeline {
             }
         }
 
-        stage('Setup Minikube') {
-            steps {
-                script {
-                    echo 'Starting Minikube...'
-                    bat """
-                        minikube start --driver=virtualbox
-                    """
-                    // Set kubectl to interact with Minikube
-                    bat """
-                        kubectl config use-context minikube
-                    """
-                }
-            }
-        }
-
         stage('Deploy to Minikube') {
             steps {
                 script {
                     // Apply the Kubernetes Deployment using kubectl
                     echo 'Deploying to Minikube...'
 
-                    // Replace `deployment.yaml` with the correct path to your Kubernetes deployment manifest
-                    // Ensure you have a valid `deployment.yaml` file in your repository
+                    // Reference the Kubernetes manifest located in the k8s folder
                     bat """
-                        kubectl apply -f deployment.yaml
+                        kubectl apply -f k8s/deployment.yaml
                     """
 
                     echo 'Deployment to Minikube complete!'
@@ -110,6 +95,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             // Clean up Docker images to free up space after pushing
