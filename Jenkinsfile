@@ -8,6 +8,7 @@ pipeline {
         TAG = "latest"                      // Replace with your desired tag (e.g., version)
         DOCKER_CLI = "docker"               // Docker CLI
         IBM_CLOUD_CLI = "ibmcloud"         // IBM Cloud CLI
+        KUBECONFIG = 'C:\\Users\\chira\\.kube\\config'  // Path to the kubeconfig file for Minikube
     }
 
     stages {
@@ -89,8 +90,28 @@ pipeline {
                     bat """
                         kubectl apply -f k8s/deployment.yaml
                     """
-
                     echo 'Deployment to Minikube complete!'
+
+                    // Optionally, check the status of pods in Minikube
+                    echo 'Checking pod status in Minikube...'
+                    bat '''
+                        kubectl get pods
+                    '''
+                }
+            }
+        }
+
+        // IBM Cloud Deployment (Optional)
+        stage('Deploy to IBM Cloud') {
+            steps {
+                script {
+                    echo 'Deploying to IBM Cloud...'
+
+                    // Assuming you have a deployment.yaml for IBM Cloud as well
+                    bat '''
+                        kubectl apply -f k8s/ibmcloud-deployment.yaml
+                    '''
+                    echo 'Deployment to IBM Cloud complete!'
                 }
             }
         }
