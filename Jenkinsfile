@@ -2,15 +2,22 @@ pipeline {
     agent any
     environment {
         REGISTRY_URL = "us.icr.io"         // IBM Cloud Registry URL
-        NAMESPACE = "ci-cd-app"         // Replace with your IBM Cloud namespace
+        NAMESPACE = "ci-cd-app"            // Replace with your IBM Cloud namespace
         IMAGE_NAME = "myapp"               // Replace with your Docker image name
         TAG = "latest"                     // Replace with your desired tag (e.g., version)
+        DOCKER_CLI = "docker"              // Docker CLI
+        IBM_CLOUD_CLI = "ibmcloud"        // IBM Cloud CLI
     }
     stages {
         stage('Checkout') {
             steps {
-                // Use the correct credentials ID to authenticate with GitHub
-                git credentialsId: 'github-token', url: 'https://github.com/harshi6410/CI-CD-Pipeline2.git'
+                script {
+                    // Clean workspace to ensure no leftover state
+                    deleteDir()
+                    echo 'Checking out the code from GitHub repository...'
+                    // Use the correct credentials ID to authenticate with GitHub
+                    git credentialsId: 'github-token', url: 'https://github.com/harshi6410/CI-CD-Pipeline2.git', branch: 'main'
+                }
             }
         }
 
@@ -34,14 +41,36 @@ pipeline {
 
         stage('Push to IBM Cloud Container Registry') {
             steps {
-                bat '''
-                    echo Logging in to IBM Cloud Container Registry...
-                    ibmcloud cr login
+                script {
+                    // Ensure IBM Cloud CLI is authenticated
+                    echo 'Logging into IBM Cloud...'
+                    bat '''
+                        ibmcloud login --apikey YOUR_IBM_API_KEY --no-region
+                        ibmcloud cr login
+                    '''
                     
-                    echo Pushing Docker image to IBM Cloud Container Registry...
-                    docker push %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG%
-                '''
+                    // Push the Docker image to IBM Cloud Container Registry
+                    echo 'Pushing Docker image to IBM Cloud Container Registry...'
+                    bat '''
+                        docker push %REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG%
+                    '''
+                }
             }
+        }
+    }
+    post {
+        always {
+            // Clean up Docker images to free up space after pushing
+            echo 'Cleaning up Docker images...'
+            bat '''
+                docker system prune -f
+            '''
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline execution failed!'
         }
     }
 }
