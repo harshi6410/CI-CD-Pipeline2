@@ -18,7 +18,7 @@ spec:
       - name: myapp
         image: us.icr.io/ci-cd-app/myapp:latest  # Ensure this matches your image tag
         ports:
-        - containerPort: 3000  # Update this with the appropriate port your app uses
+        - containerPort: 3000  # Ensure this is the port your app uses
 ---
 apiVersion: v1
 kind: Service
