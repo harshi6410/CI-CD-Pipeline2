@@ -1,16 +1,16 @@
 pipeline {
     agent any
     environment {
-        REGISTRY_URL = "us.icr.io"           // IBM Cloud Registry URL
-        NAMESPACE = "ci-cd-app"           // Replace with your IBM Cloud namespace
-        IMAGE_NAME = "myapp"                 // Replace with your Docker image name
-        TAG = "latest"                       // Replace with your desired tag (e.g., version)
+        REGISTRY_URL = "us.icr.io"         // IBM Cloud Registry URL
+        NAMESPACE = "ci-cd-app"         // Replace with your IBM Cloud namespace
+        IMAGE_NAME = "myapp"               // Replace with your Docker image name
+        TAG = "latest"                     // Replace with your desired tag (e.g., version)
     }
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the latest code from the GitHub repository
-                git 'https://github.com/your-repo/your-project.git'
+                // Use the correct credentials ID to authenticate with GitHub
+                git credentialsId: 'github-token', url: 'https://github.com/harshi6410/CI-CD-Pipeline2.git'
             }
         }
 
