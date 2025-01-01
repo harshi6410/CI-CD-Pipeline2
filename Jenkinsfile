@@ -42,12 +42,14 @@ pipeline {
         stage('Push to IBM Cloud Container Registry') {
             steps {
                 script {
-                    // Ensure IBM Cloud CLI is authenticated
-                    echo 'Logging into IBM Cloud...'
-                    bat '''
-                        ibmcloud login --apikey YOUR_IBM_API_KEY --no-region
-                        ibmcloud cr login
-                    '''
+                    // Ensure IBM Cloud CLI is authenticated using credentials stored in Jenkins
+                    withCredentials([string(credentialsId: 'ibm-cloud-api-key', variable: 'IBM_API_KEY')]) {
+                        echo 'Logging into IBM Cloud...'
+                        bat """
+                            ibmcloud login --apikey ${IBM_API_KEY} --no-region
+                            ibmcloud cr login
+                        """
+                    }
                     
                     // Push the Docker image to IBM Cloud Container Registry
                     echo 'Pushing Docker image to IBM Cloud Container Registry...'
