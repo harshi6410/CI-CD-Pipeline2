@@ -7,12 +7,8 @@ pipeline {
         TAG = "latest"                     // Replace with your desired tag (e.g., version)
         DOCKER_CLI = "docker"              // Docker CLI
         IBM_CLOUD_CLI = "ibmcloud"        // IBM Cloud CLI
-        MINIKUBE_HOME = "${env.WORKSPACE}/minikube" // Minikube home directory (set to the workspace path)
-        MINIKUBE_PROFILE = "minikube"     // Profile for Minikube
-        K8S_NAMESPACE = "default"          // Kubernetes namespace for deployment
-        K8S_DEPLOYMENT_NAME = "myapp-deployment" // Kubernetes deployment name
+        MINIKUBE_HOME = "/c/Minikube"      // Path to Minikube installation (example path for Windows)
     }
-
     stages {
         stage('Install IBM Cloud Container Registry Plugin') {
             steps {
@@ -59,7 +55,7 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image to IBM Cloud Container Registry') {
+        stage('Push to IBM Cloud Container Registry') {
             steps {
                 script {
                     // Ensure IBM Cloud CLI is authenticated using credentials stored in Jenkins
@@ -85,13 +81,11 @@ pipeline {
         stage('Setup Minikube') {
             steps {
                 script {
-                    echo 'Setting up Minikube environment...'
-                    // Check if Minikube is installed and start it
+                    echo 'Starting Minikube...'
                     bat """
                         minikube start --driver=virtualbox
                     """
-
-                    // Set the kubectl context to Minikube
+                    // Set kubectl to interact with Minikube
                     bat """
                         kubectl config use-context minikube
                     """
@@ -102,22 +96,20 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
-                    echo 'Deploying Docker image to Minikube...'
+                    // Apply the Kubernetes Deployment using kubectl
+                    echo 'Deploying to Minikube...'
 
-                    // Create a Kubernetes deployment with the pushed image from IBM Cloud Container Registry
+                    // Replace `deployment.yaml` with the correct path to your Kubernetes deployment manifest
+                    // Ensure you have a valid `deployment.yaml` file in your repository
                     bat """
-                        kubectl create deployment %K8S_DEPLOYMENT_NAME% --image=%REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG% --namespace=%K8S_NAMESPACE% || kubectl set image deployment/%K8S_DEPLOYMENT_NAME% %IMAGE_NAME%=%REGISTRY_URL%/%NAMESPACE%/%IMAGE_NAME%:%TAG% --namespace=%K8S_NAMESPACE%
+                        kubectl apply -f deployment.yaml
                     """
 
-                    // Check the status of the deployment
-                    bat """
-                        kubectl rollout status deployment/%K8S_DEPLOYMENT_NAME% --namespace=%K8S_NAMESPACE%
-                    """
+                    echo 'Deployment to Minikube complete!'
                 }
             }
         }
     }
-
     post {
         always {
             // Clean up Docker images to free up space after pushing
@@ -127,7 +119,7 @@ pipeline {
             '''
         }
         success {
-            echo 'Pipeline executed successfully! Deployment to Minikube completed.'
+            echo 'Pipeline executed successfully!'
         }
         failure {
             echo 'Pipeline execution failed!'
