@@ -64,8 +64,12 @@ pipeline {
                         // Log in to IBM Cloud using the API Key
                         bat """
                             ibmcloud login --apikey %IBM_API_KEY% --no-region
+                            ibmcloud cr region-set us-south
                             ibmcloud cr login
                         """
+                        
+                        // Explicit Docker login with the IBM API Key
+                        bat "docker login -u iamapikey -p %IBM_API_KEY% %REGISTRY_URL%"
                     }
 
                     // Push the Docker image to IBM Cloud Container Registry
